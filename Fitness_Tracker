@@ -1,5 +1,5 @@
  db.users.insert({
-username:"Vaibhav",
+username:"John",
 workouts:[{exercise:"Running",duration:30,day:"Monday"},
 {exercise:"WeightLifting",duration:45,day:"Tuesday"},],
 goals:[{target:"Run 5 miles",targetvalue:5,progress:3},
