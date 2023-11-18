@@ -1,4 +1,14 @@
- db.users.insert({
+// Creating a database for the fitness tracker
+use database_name;
+// Creating a collection for users
+db.createCollection("users")
+
+// Creating a collection for workouts
+db.createCollection("workouts")
+
+// Creating a collection for goals
+db.createCollection("goals")
+db.users.insert({
 username:"John",
 workouts:[{exercise:"Running",duration:30,day:"Monday"},
 {exercise:"WeightLifting",duration:45,day:"Tuesday"},],
