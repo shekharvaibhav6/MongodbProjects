@@ -1,0 +1,269 @@
+mongostat> db.products.insertMany([
+...   { name: "Laptop", category: "Electronics", price: 1200 },
+...   { name: "Smartphone", category: "Electronics", price: 600 },
+...   { name: "Coffee Maker", category: "Appliances", price: 80 },
+...   // Add more sample products
+... ]);
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("6559e22fa080393df3b0fcdf"),
+    '1': ObjectId("6559e22fa080393df3b0fce0"),
+    '2': ObjectId("6559e22fa080393df3b0fce1")
+  }
+}
+mongostat> db.products.find({ category: "Electronics" }).explain("executionStats");
+{
+  explainVersion: '2',
+  queryPlanner: {
+    namespace: 'mongostat.products',
+    indexFilterSet: false,
+    parsedQuery: { category: { '$eq': 'Electronics' } },
+    queryHash: '00DC4EDD',
+    planCacheKey: '5846A817',
+    maxIndexedOrSolutionsReached: false,
+    maxIndexedAndSolutionsReached: false,
+    maxScansToExplodeReached: false,
+    winningPlan: {
+      queryPlan: {
+        stage: 'COLLSCAN',
+        planNodeId: 1,
+        filter: { category: { '$eq': 'Electronics' } },
+        direction: 'forward'
+      },
+      slotBasedPlan: {
+        slots: '$$RESULT=s5 env: { s3 = 1700389453039 (NOW), s7 = "Electronics", s1 = TimeZoneDatabase(Pacific/Noumea...Etc/GMT+9) (timeZoneDB), s2 = Nothing (SEARCH_META) }',
+        stages: '[1] filter {traverseF(s4, lambda(l1.0) { ((l1.0 == s7) ?: false) }, false)} \n' +
+          '[1] scan s5 s6 none none none none lowPriority [s4 = category] @"4c58b4d7-8fb8-4d8c-902e-d61d38d12215" true false '
+      }
+    },
+    rejectedPlans: []
+  },
+  executionStats: {
+    executionSuccess: true,
+    nReturned: 2,
+    executionTimeMillis: 0,
+    totalKeysExamined: 0,
+    totalDocsExamined: 3,
+    executionStages: {
+      stage: 'filter',
+      planNodeId: 1,
+      nReturned: 2,
+      executionTimeMillisEstimate: 0,
+      opens: 1,
+      closes: 1,
+      saveState: 0,
+      restoreState: 0,
+      isEOF: 1,
+      numTested: 3,
+      filter: 'traverseF(s4, lambda(l1.0) { ((l1.0 == s7) ?: false) }, false) ',
+      inputStage: {
+        stage: 'scan',
+        planNodeId: 1,
+        nReturned: 3,
+        executionTimeMillisEstimate: 0,
+        opens: 1,
+        closes: 1,
+        saveState: 0,
+        restoreState: 0,
+        isEOF: 1,
+        numReads: 3,
+        recordSlot: 5,
+        recordIdSlot: 6,
+        fields: [ 'category' ],
+        outputSlots: [ Long("4") ]
+      }
+    }
+  },
+  command: {
+    find: 'products',
+    filter: { category: 'Electronics' },
+    '$db': 'mongostat'
+  },
+  serverInfo: {
+    host: 'Vaibhav',
+    port: 27017,
+    version: '7.0.2',
+    gitVersion: '02b3c655e1302209ef046da6ba3ef6749dd0b62a'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeEngine'
+  },
+  ok: 1
+}
+mongostat> db.products.createIndex({ category: 1 });
+category_1
+mongostat> db.products.find({ category: "Electronics" }).explain("executionStats");
+{
+  explainVersion: '2',
+  queryPlanner: {
+    namespace: 'mongostat.products',
+    indexFilterSet: false,
+    parsedQuery: { category: { '$eq': 'Electronics' } },
+    queryHash: '00DC4EDD',
+    planCacheKey: '3B7AC9F9',
+    maxIndexedOrSolutionsReached: false,
+    maxIndexedAndSolutionsReached: false,
+    maxScansToExplodeReached: false,
+    winningPlan: {
+      queryPlan: {
+        stage: 'FETCH',
+        planNodeId: 2,
+        inputStage: {
+          stage: 'IXSCAN',
+          planNodeId: 1,
+          keyPattern: { category: 1 },
+          indexName: 'category_1',
+          isMultiKey: false,
+          multiKeyPaths: { category: [] },
+          isUnique: false,
+          isSparse: false,
+          isPartial: false,
+          indexVersion: 2,
+          direction: 'forward',
+          indexBounds: { category: [ '["Electronics", "Electronics"]' ] }
+        }
+      },
+      slotBasedPlan: {
+        slots: '$$RESULT=s11 env: { s10 = {"category" : 1}, s2 = Nothing (SEARCH_META), s5 = KS(3C456C656374726F6E696373000104), s3 = 1700389489210 (NOW), s6 = KS(3C456C656374726F6E69637300FE04), s1 = TimeZoneDatabase(Pacific/Noumea...Etc/GMT+9) (timeZoneDB) }',
+        stages: '[2] nlj inner [] [s4, s7, s8, s9, s10] \n' +
+          '    left \n' +
+          '        [1] cfilter {(exists(s5) && exists(s6))} \n' +
+          '        [1] ixseek s5 s6 s9 s4 s7 s8 [] @"4c58b4d7-8fb8-4d8c-902e-d61d38d12215" @"category_1" true \n' +
+          '    right \n' +
+          '        [2] limit 1 \n' +
+          '        [2] seek s4 s11 s12 s7 s8 s9 s10 [] @"4c58b4d7-8fb8-4d8c-902e-d61d38d12215" true false \n'
+      }
+    },
+    rejectedPlans: []
+  },
+  executionStats: {
+    executionSuccess: true,
+    nReturned: 2,
+    executionTimeMillis: 7,
+    totalKeysExamined: 2,
+    totalDocsExamined: 2,
+    executionStages: {
+      stage: 'nlj',
+      planNodeId: 2,
+      nReturned: 2,
+      executionTimeMillisEstimate: 5,
+      opens: 1,
+      closes: 1,
+      saveState: 0,
+      restoreState: 0,
+      isEOF: 1,
+      totalDocsExamined: 2,
+      totalKeysExamined: 2,
+      collectionScans: 0,
+      collectionSeeks: 2,
+      indexScans: 0,
+      indexSeeks: 1,
+      indexesUsed: [ 'category_1' ],
+      innerOpens: 2,
+      innerCloses: 1,
+      outerProjects: [],
+      outerCorrelated: [ Long("4"), Long("7"), Long("8"), Long("9"), Long("10") ],
+      outerStage: {
+        stage: 'cfilter',
+        planNodeId: 1,
+        nReturned: 2,
+        executionTimeMillisEstimate: 5,
+        opens: 1,
+        closes: 1,
+        saveState: 0,
+        restoreState: 0,
+        isEOF: 1,
+        numTested: 1,
+        filter: '(exists(s5) && exists(s6)) ',
+        inputStage: {
+          stage: 'ixseek',
+          planNodeId: 1,
+          nReturned: 2,
+          executionTimeMillisEstimate: 5,
+          opens: 1,
+          closes: 1,
+          saveState: 0,
+          restoreState: 0,
+          isEOF: 1,
+          indexName: 'category_1',
+          keysExamined: 2,
+          seeks: 1,
+          numReads: 3,
+          indexKeySlot: 9,
+          recordIdSlot: 4,
+          snapshotIdSlot: 7,
+          indexIdentSlot: 8,
+          outputSlots: [],
+          indexKeysToInclude: '00000000000000000000000000000000',
+          seekKeyLow: 's5 ',
+          seekKeyHigh: 's6 '
+        }
+      },
+      innerStage: {
+        stage: 'limit',
+        planNodeId: 2,
+        nReturned: 2,
+        executionTimeMillisEstimate: 0,
+        opens: 2,
+        closes: 1,
+        saveState: 0,
+        restoreState: 0,
+        isEOF: 1,
+        limit: 1,
+        inputStage: {
+          stage: 'seek',
+          planNodeId: 2,
+          nReturned: 2,
+          executionTimeMillisEstimate: 0,
+          opens: 2,
+          closes: 1,
+          saveState: 0,
+          restoreState: 0,
+          isEOF: 0,
+          numReads: 2,
+          recordSlot: 11,
+          recordIdSlot: 12,
+          seekKeySlot: 4,
+          snapshotIdSlot: 7,
+          indexIdentSlot: 8,
+          indexKeySlot: 9,
+          indexKeyPatternSlot: 10,
+          fields: [],
+          outputSlots: []
+        }
+      }
+    }
+  },
+  command: {
+    find: 'products',
+    filter: { category: 'Electronics' },
+    '$db': 'mongostat'
+  },
+  serverInfo: {
+    host: 'Vaibhav',
+    port: 27017,
+    version: '7.0.2',
+    gitVersion: '02b3c655e1302209ef046da6ba3ef6749dd0b62a'
+  },
+  serverParameters: {
+    internalQueryFacetBufferSizeBytes: 104857600,
+    internalQueryFacetMaxOutputDocSizeBytes: 104857600,
+    internalLookupStageIntermediateDocumentMaxSizeBytes: 104857600,
+    internalDocumentSourceGroupMaxMemoryBytes: 104857600,
+    internalQueryMaxBlockingSortMemoryUsageBytes: 104857600,
+    internalQueryProhibitBlockingMergeOnMongoS: 0,
+    internalQueryMaxAddToSetBytes: 104857600,
+    internalDocumentSourceSetWindowFieldsMaxMemoryBytes: 104857600,
+    internalQueryFrameworkControl: 'trySbeEngine'
+  },
+  ok: 1
+}
